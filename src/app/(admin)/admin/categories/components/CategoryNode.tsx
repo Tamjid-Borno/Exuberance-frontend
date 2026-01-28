@@ -52,7 +52,10 @@ function CategoryNode({
      HELPERS — API PATCH
   ================================================== */
 
-  const patchCategory = async (payload: object, successMsg: string) => {
+  const patchCategory = async (
+    payload: Record<string, unknown>,
+    successMsg: string
+  ) => {
     setLoading(true);
 
     try {
@@ -261,6 +264,11 @@ function CategoryNode({
           parent_id: node.parent_id,
           is_active: node.is_active,
           is_campaign: node.is_campaign,
+
+          // ✅ REQUIRED FOR CategoryPayload (FIX)
+          starts_at: node.starts_at ?? null,
+          ends_at: node.ends_at ?? null,
+          show_countdown: node.show_countdown ?? false,
         }}
         tree={tree}
       />

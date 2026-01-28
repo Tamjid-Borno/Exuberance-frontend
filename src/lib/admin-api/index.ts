@@ -32,6 +32,14 @@ export {
   buildQuery,
 } from "./helpers";
 
+export {
+  getCSRFToken,
+} from "./csrf";
+
+/* ==================================================
+   PAGINATION
+================================================== */
+
 export type {
   PaginationMeta,
   PaginatedResponse,
@@ -42,51 +50,46 @@ export type {
 ================================================== */
 
 export type {
-  // -------- PRODUCTS --------
+  // ================= ORDERS =================
+  AdminOrder,
+  AdminOrderDetail,
+  AdminOrderAuditLog,
+  OrderStatus,
+
+  // ================= PRODUCTS =================
   AdminProduct,
   AdminProductDetail,
   AdminProductVariant,
   AdminProductAttribute,
   AdminProductImage,
 
-  // -------- CATEGORIES --------
+  // ================= CATEGORIES =================
   AdminCategory,
   AdminCategoryTreeNode,
 } from "./types";
 
 /* ==================================================
-   ORDERS — ADMIN (READ + STATE MACHINE)
+   ORDERS — ADMIN
 ================================================== */
 
 export {
   fetchAdminOrders,
   fetchAdminOrderDetail,
-  updateAdminOrderStatus,
   fetchAdminOrderAudit,
+  updateAdminOrderStatus,
 } from "./orders";
 
 /* ==================================================
-   PRODUCTS — ADMIN CORE (CANONICAL)
+   PRODUCTS — ADMIN CORE
 ================================================== */
 
 export {
-  // 📄 LIST & READ
   fetchAdminProducts,
   fetchAdminProductDetail,
-
-  // 🆕 CREATE (MINIMAL PRODUCT SHELL)
   createAdminProduct,
-
-  // 🔒 BASIC IDENTITY (NAME / SLUG)
   updateAdminProductBasicInfo,
-
-  // 💰 COMMERCIAL STATE (PRICE / FLAGS)
   updateAdminProduct,
-
-  // 📝 CMS CONTENT (RICH HTML)
   updateAdminProductDescription,
-
-  // 🔁 ACTIVE / INACTIVE TOGGLE
   toggleAdminProductStatus,
 } from "./products";
 
@@ -102,7 +105,11 @@ export type {
 ================================================== */
 
 export {
+  fetchAdminCategories,
   fetchAdminCategoryTree,
+  createAdminCategory,
+  updateAdminCategory,
+  deleteAdminCategory,
 } from "./categories";
 
 /* ==================================================
@@ -121,7 +128,7 @@ export type {
 } from "./product-images";
 
 /* ==================================================
-   CMS — LANDING PAGE COMPOSITION
+   CMS — LANDING BLOCKS
 ================================================== */
 
 export {
@@ -135,6 +142,7 @@ export type {
   AdminLandingBlock,
   AdminLandingBlockCreatePayload,
   AdminLandingBlockUpdatePayload,
+  LandingBlockType,
 } from "./cms/landing-blocks";
 
 /* ==================================================
@@ -179,11 +187,13 @@ export {
   fetchAdminFeaturedCategories,
   createAdminFeaturedCategory,
   updateAdminFeaturedCategory,
+  deleteAdminFeaturedCategory,
 } from "./cms/featured-categories";
 
 export type {
   AdminFeaturedCategory,
-  AdminFeaturedCategoryPayload,
+  AdminFeaturedCategoryCreatePayload,
+  AdminFeaturedCategoryUpdatePayload,
 } from "./cms/featured-categories";
 
 /* ==================================================
@@ -212,9 +222,14 @@ export {
   fetchAdminComfortRails,
   createAdminComfortRail,
   updateAdminComfortRail,
+  deleteAdminComfortRail,
 } from "./cms/comfort-rails";
 
 export type {
   AdminComfortCategoryRail,
-  AdminComfortCategoryRailPayload,
+  AdminComfortCategoryRailUpdatePayload,
 } from "./cms/comfort-rails";
+
+/* ==================================================
+   END OF BARREL
+================================================== */

@@ -20,7 +20,7 @@ import type {
   AdminCategoryTreeNode,
 } from "./types";
 
-// 🔥 RE-EXPORT FOR PUBLIC API (THIS FIXES YOUR ERROR)
+// ✅ Re-export for public API
 export type { AdminCategory } from "./types";
 
 /* ==================================================
@@ -31,6 +31,31 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function assertOptionalString(
+  value: unknown,
+  field: string
+): asserts value is string | null | undefined {
+  if (
+    value !== undefined &&
+    value !== null &&
+    typeof value !== "string"
+  ) {
+    throw new Error(`Invalid ${field}`);
+  }
+}
+
+function assertOptionalBoolean(
+  value: unknown,
+  field: string
+): asserts value is boolean | undefined {
+  if (
+    value !== undefined &&
+    typeof value !== "boolean"
+  ) {
+    throw new Error(`Invalid ${field}`);
+  }
+}
+
 function assertCategoryTreeNode(
   value: unknown
 ): asserts value is AdminCategoryTreeNode {
@@ -38,15 +63,22 @@ function assertCategoryTreeNode(
     throw new Error("Invalid category tree node");
   }
 
+  // Required fields
   if (
     typeof value.id !== "number" ||
     typeof value.name !== "string" ||
     typeof value.slug !== "string" ||
     typeof value.is_active !== "boolean" ||
+    typeof value.is_campaign !== "boolean" ||
     !Array.isArray(value.children)
   ) {
     throw new Error("Invalid category tree node structure");
   }
+
+  // Optional campaign fields (backend-controlled)
+  assertOptionalString(value.starts_at, "starts_at");
+  assertOptionalString(value.ends_at, "ends_at");
+  assertOptionalBoolean(value.show_countdown, "show_countdown");
 
   for (const child of value.children) {
     assertCategoryTreeNode(child);
@@ -85,7 +117,7 @@ export async function fetchAdminCategoryTree(): Promise<
 }
 
 /* ==================================================
-   FETCH FLAT CATEGORY LIST (ADMIN — ALL)
+   FETCH FLAT CATEGORY LIST (ADMIN)
 ================================================== */
 
 export async function fetchAdminCategories(): Promise<
@@ -120,7 +152,7 @@ export async function createAdminCategory(payload: {
   slug?: string;
   parent_id?: number | null;
 
-  // 🔥 CAMPAIGN
+  // 🔥 Campaign
   is_campaign?: boolean;
   starts_at?: string | null;
   ends_at?: string | null;
@@ -132,7 +164,7 @@ export async function createAdminCategory(payload: {
 
   // State
   is_active?: boolean;
-}) {
+}): Promise<AdminCategory> {
   if (!payload.name?.trim()) {
     throw new Error("Category name is required");
   }
@@ -156,7 +188,7 @@ export async function createAdminCategory(payload: {
     throw new Error(await parseErrorResponse(res));
   }
 
-  return safeJson(res);
+  return safeJson<AdminCategory>(res);
 }
 
 /* ==================================================
@@ -170,7 +202,7 @@ export async function updateAdminCategory(
     slug?: string;
     parent_id?: number | null;
 
-    // 🔥 CAMPAIGN
+    // 🔥 Campaign
     is_campaign?: boolean;
     starts_at?: string | null;
     ends_at?: string | null;
@@ -183,7 +215,7 @@ export async function updateAdminCategory(
     // State
     is_active?: boolean;
   }
-) {
+): Promise<AdminCategory> {
   if (!Number.isFinite(id)) {
     throw new Error("Invalid category id");
   }
@@ -207,7 +239,7 @@ export async function updateAdminCategory(
     throw new Error(await parseErrorResponse(res));
   }
 
-  return safeJson(res);
+  return safeJson<AdminCategory>(res);
 }
 
 /* ==================================================

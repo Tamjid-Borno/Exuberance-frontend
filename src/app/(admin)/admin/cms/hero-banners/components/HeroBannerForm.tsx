@@ -17,12 +17,34 @@ import type {
 import { useAdminToast } from "@/hooks/useAdminToast";
 import "./hero-banner-form.css";
 
+/* ==================================================
+   TYPES
+================================================== */
+
 type Mode = "create" | "edit";
 
 type Props = {
   mode: Mode;
   existing?: AdminHeroBanner;
 };
+
+type ImageInputProps = {
+  label: string;
+  required?: boolean;
+  existing?: string | null;
+  onChange: (file: File | null) => void;
+};
+
+type InputProps = {
+  label: string;
+  type: string;
+  value: string | number;
+  onChange: (value: string) => void;
+};
+
+/* ==================================================
+   COMPONENT
+================================================== */
 
 export default function HeroBannerForm({ mode, existing }: Props) {
   const router = useRouter();
@@ -32,10 +54,18 @@ export default function HeroBannerForm({ mode, existing }: Props) {
   const [imageTablet, setImageTablet] = useState<File | null>(null);
   const [imageMobile, setImageMobile] = useState<File | null>(null);
 
-  const [isActive, setIsActive] = useState(existing?.is_active ?? true);
-  const [startsAt, setStartsAt] = useState(existing?.starts_at ?? "");
-  const [endsAt, setEndsAt] = useState(existing?.ends_at ?? "");
-  const [ordering, setOrdering] = useState(existing?.ordering ?? 0);
+  const [isActive, setIsActive] = useState<boolean>(
+    existing?.is_active ?? true
+  );
+  const [startsAt, setStartsAt] = useState<string>(
+    existing?.starts_at ?? ""
+  );
+  const [endsAt, setEndsAt] = useState<string>(
+    existing?.ends_at ?? ""
+  );
+  const [ordering, setOrdering] = useState<number>(
+    existing?.ordering ?? 0
+  );
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -46,7 +76,7 @@ export default function HeroBannerForm({ mode, existing }: Props) {
   }, [mode, imageDesktop, submitting]);
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!canSubmit) return;
 
@@ -54,7 +84,9 @@ export default function HeroBannerForm({ mode, existing }: Props) {
         setSubmitting(true);
 
         if (mode === "create") {
-          if (!imageDesktop) throw new Error("Desktop image required");
+          if (!imageDesktop) {
+            throw new Error("Desktop image required");
+          }
 
           const payload: AdminHeroBannerCreatePayload = {
             image_desktop: imageDesktop,
@@ -70,7 +102,9 @@ export default function HeroBannerForm({ mode, existing }: Props) {
           await createAdminHeroBanner(payload);
           showToast("Hero banner created", "success");
         } else {
-          if (!existing) throw new Error("Missing banner");
+          if (!existing) {
+            throw new Error("Missing banner");
+          }
 
           const payload: AdminHeroBannerUpdatePayload = {
             is_active: isActive,
@@ -118,60 +152,121 @@ export default function HeroBannerForm({ mode, existing }: Props) {
       <fieldset className="hero-fieldset">
         <legend>Images</legend>
 
-        <ImageInput label="Desktop image" required={mode === "create"} existing={existing?.image_desktop} onChange={setImageDesktop} />
-        <ImageInput label="Tablet image" existing={existing?.image_tablet} onChange={setImageTablet} />
-        <ImageInput label="Mobile image" existing={existing?.image_mobile} onChange={setImageMobile} />
+        <ImageInput
+          label="Desktop image"
+          required={mode === "create"}
+          existing={existing?.image_desktop ?? null}
+          onChange={setImageDesktop}
+        />
+
+        <ImageInput
+          label="Tablet image"
+          existing={existing?.image_tablet ?? null}
+          onChange={setImageTablet}
+        />
+
+        <ImageInput
+          label="Mobile image"
+          existing={existing?.image_mobile ?? null}
+          onChange={setImageMobile}
+        />
       </fieldset>
 
       <fieldset className="hero-fieldset">
         <legend>Visibility</legend>
 
         <label className="checkbox">
-          <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+          />
           Active
         </label>
 
         <div className="row">
-          <Input label="Starts at" type="datetime-local" value={startsAt} onChange={setStartsAt} />
-          <Input label="Ends at" type="datetime-local" value={endsAt} onChange={setEndsAt} />
+          <Input
+            label="Starts at"
+            type="datetime-local"
+            value={startsAt}
+            onChange={setStartsAt}
+          />
+
+          <Input
+            label="Ends at"
+            type="datetime-local"
+            value={endsAt}
+            onChange={setEndsAt}
+          />
         </div>
 
-        <Input label="Ordering" type="number" value={ordering} onChange={(v) => setOrdering(Number(v))} />
+        <Input
+          label="Ordering"
+          type="number"
+          value={ordering}
+          onChange={(v: string) => setOrdering(Number(v))}
+        />
       </fieldset>
 
-      <button className="btn primary" type="submit" disabled={!canSubmit}>
+      <button
+        className="btn primary"
+        type="submit"
+        disabled={!canSubmit}
+      >
         {mode === "create" ? "Create Banner" : "Save Changes"}
       </button>
     </form>
   );
 }
 
-/* ================= SUB COMPONENTS ================= */
+/* ==================================================
+   SUB COMPONENTS
+================================================== */
 
-function ImageInput({ label, required, existing, onChange }: any) {
+function ImageInput({
+  label,
+  required = false,
+  existing,
+  onChange,
+}: ImageInputProps) {
   return (
     <div className="form-group">
       <label>{label}</label>
 
       {existing && (
-        <img src={existing} className="image-preview" alt="" />
+        <img
+          src={existing}
+          className="image-preview"
+          alt=""
+        />
       )}
 
       <input
         type="file"
         accept="image/*"
         required={required}
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        onChange={(e) =>
+          onChange(e.target.files?.[0] ?? null)
+        }
       />
     </div>
   );
 }
 
-function Input({ label, type, value, onChange }: any) {
+function Input({
+  label,
+  type,
+  value,
+  onChange,
+}: InputProps) {
   return (
     <div className="form-group">
       <label>{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }

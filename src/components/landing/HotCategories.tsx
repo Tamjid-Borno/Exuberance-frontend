@@ -1,16 +1,32 @@
+"use client";
+
 import Link from "next/link";
 import styles from "./HotCategories.module.css";
 
 /**
- * 🔥 SINGLE SOURCE OF TRUTH
- * - Never redefine domain types in components
+ * ==================================================
+ * HOT CATEGORIES — LANDING SECTION
+ * ==================================================
+ *
+ * Rules:
  * - API layer owns the contract
+ * - UI NEVER redefines domain types
+ * - This component consumes APIHotCategory directly
  */
-import type { HotCategory } from "@/lib/api/types";
+
+import type { APIHotCategory } from "@/lib/api/types";
+
+/* ==================================================
+   PROPS
+================================================== */
 
 type Props = {
-  items: HotCategory[];
+  items: APIHotCategory[];
 };
+
+/* ==================================================
+   COMPONENT
+================================================== */
 
 export default function HotCategories({ items }: Props) {
   // Absolute safety guard
@@ -28,7 +44,7 @@ export default function HotCategories({ items }: Props) {
             className={styles.card}
             aria-label={item.name}
           >
-            {/* ✅ SAFE IMAGE HANDLING (NO CRASHES) */}
+            {/* IMAGE */}
             {item.image ? (
               <img
                 src={item.image}
@@ -42,7 +58,9 @@ export default function HotCategories({ items }: Props) {
               />
             )}
 
-            <span>{item.name}</span>
+            <span className={styles.title}>
+              {item.name}
+            </span>
           </Link>
         ))}
       </div>

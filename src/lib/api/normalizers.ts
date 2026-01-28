@@ -45,6 +45,9 @@ export function normalizeMediaUrl(
 /* ================================
    CATEGORY NORMALIZER
 ================================ */
+/* ================================
+   CATEGORY NORMALIZER (FIXED)
+================================ */
 export function normalizeCategory(
   raw: APICategory
 ): Category {
@@ -53,31 +56,42 @@ export function normalizeCategory(
     name: String(raw.name ?? ""),
     slug: String(raw.slug ?? ""),
     image: normalizeMediaUrl(raw.image),
+
+    // 🔥 CAMPAIGN FIELDS — SAFE DEFAULTS
     is_campaign: Boolean(raw.is_campaign),
+    starts_at: null,
+    ends_at: null,
+    show_countdown: false,
+
+    // 🌳 TREE
     children: Array.isArray(raw.children)
       ? raw.children.map(normalizeCategory)
       : [],
   };
 }
 
+
 /* ================================
    PRODUCT NORMALIZER
    (LIST / CARD / RELATED)
+================================ */
+/* ================================
+   PRODUCT NORMALIZER (FIXED)
 ================================ */
 export function normalizeProduct(
   raw: APIProduct
 ): Product {
   return {
     id: Number(raw.id),
-    slug: String(raw.slug ?? ""), // ✅ 🔥 FIX (REQUIRED)
-
+    slug: String(raw.slug ?? ""),
     name: String(raw.name ?? ""),
-    price: Number(raw.price ?? 0),
 
+    // ✅ KEEP DECIMALS AS STRINGS
+    price: String(raw.price ?? "0"),
     old_price:
       raw.old_price !== null &&
       raw.old_price !== undefined
-        ? Number(raw.old_price)
+        ? String(raw.old_price)
         : null,
 
     main_image: normalizeMediaUrl(

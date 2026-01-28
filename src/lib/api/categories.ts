@@ -1,5 +1,5 @@
 import { API_BASE } from "./config";
-import type { Category } from "./types";
+import type { APICategory, Category } from "./types";
 import { normalizeCategory } from "./normalizers";
 
 /**
@@ -7,13 +7,25 @@ import { normalizeCategory } from "./normalizers";
  * PUBLIC CATEGORY API
  * ==================================================
  *
- * ⚠️ PUBLIC ENDPOINTS ONLY
+ * ✅ PUBLIC ENDPOINTS ONLY
  * - NO auth
  * - NO cookies
  * - NO CSRF
+ * - NO admin contracts
+ *
+ * Architecture:
+ * Backend (APICategory)
+ *        ↓
+ * Normalizer
+ *        ↓
+ * UI Category
  */
 
 const BASE = `${API_BASE}/api/categories`;
+
+/* ==================================================
+   FETCH CATEGORY TREE
+================================================== */
 
 export async function getCategories(): Promise<Category[]> {
   const res = await fetch(`${BASE}/`, {
@@ -24,12 +36,16 @@ export async function getCategories(): Promise<Category[]> {
     throw new Error("Failed to fetch category tree");
   }
 
-  const data = await res.json();
+  const data: unknown = await res.json();
 
-  return Array.isArray(data)
-    ? data.map(normalizeCategory)
-    : [];
+  if (!Array.isArray(data)) return [];
+
+  return (data as APICategory[]).map(normalizeCategory);
 }
+
+/* ==================================================
+   FETCH CATEGORY CARDS
+================================================== */
 
 export async function getCategoryCards(): Promise<Category[]> {
   const res = await fetch(`${BASE}/cards/`, {
@@ -40,12 +56,16 @@ export async function getCategoryCards(): Promise<Category[]> {
     throw new Error("Failed to fetch category cards");
   }
 
-  const data = await res.json();
+  const data: unknown = await res.json();
 
-  return Array.isArray(data)
-    ? data.map(normalizeCategory)
-    : [];
+  if (!Array.isArray(data)) return [];
+
+  return (data as APICategory[]).map(normalizeCategory);
 }
+
+/* ==================================================
+   FETCH CATEGORY DETAIL
+================================================== */
 
 export async function getCategoryDetail(
   slug: string
@@ -56,6 +76,7 @@ export async function getCategoryDetail(
 
   if (!res.ok) return null;
 
-  const data = await res.json();
-  return normalizeCategory(data);
+  const data: unknown = await res.json();
+
+  return normalizeCategory(data as APICategory);
 }

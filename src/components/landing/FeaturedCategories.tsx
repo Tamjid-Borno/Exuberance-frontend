@@ -1,31 +1,54 @@
 import Link from "next/link";
 import styles from "./FeaturedCategories.module.css";
 
-export type FeaturedCategory = {
-  name: string;
-  slug: string;
-  image: string;
+/**
+ * ==================================================
+ * FEATURED CATEGORIES (CMS-DRIVEN, UI-SAFE)
+ * ==================================================
+ *
+ * ❗ Domain types are owned by API layer
+ * ❗ UI never redefines business contracts
+ * ❗ This component is PURE PRESENTATION
+ */
+
+import type { APIFeaturedCategory } from "@/lib/api/types";
+
+type Props = {
+  items: APIFeaturedCategory[];
 };
 
-export default function FeaturedCategories({
-  items,
-}: {
-  items: FeaturedCategory[];
-}) {
-  if (!items.length) return null;
+export default function FeaturedCategories({ items }: Props) {
+  // Absolute safety guard
+  if (!Array.isArray(items) || items.length === 0) {
+    return null;
+  }
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.title}>FEATURED</h2>
+      <h2 className={styles.title}>Featured</h2>
 
       <div className={styles.grid}>
         {items.map((item) => (
           <Link
-            key={item.slug}
+            key={item.id}
             href={`/category/${item.slug}`}
             className={styles.card}
+            aria-label={item.name}
           >
-            <img src={item.image} alt={item.name} />
+            {/* IMAGE — SAFE AGAINST NULL */}
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className={styles.placeholder}
+                aria-hidden="true"
+              />
+            )}
+
             <span>{item.name}</span>
           </Link>
         ))}

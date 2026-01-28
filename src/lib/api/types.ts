@@ -30,8 +30,30 @@ export type APICategory = {
   name: string;
   slug: string;
   image: string | null;
+
   is_campaign?: boolean;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  show_countdown?: boolean;
+
   children?: APICategory[];
+};
+
+/* ==================================================
+   ✅ CATEGORY (UI-SAFE / NORMALIZED)
+================================================== */
+export type Category = {
+  id: number;
+  name: string;
+  slug: string;
+  image: string | null;
+
+  is_campaign: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  show_countdown: boolean;
+
+  children: Category[];
 };
 
 /* ==================================================
@@ -42,8 +64,8 @@ export type APIProduct = {
   slug: string;
   name: string;
 
-  price: string;                 // DecimalField → string
-  old_price: string | null;      // optional strike price
+  price: string;            // DecimalField → string
+  old_price: string | null;
 
   main_image: string | null;
 
@@ -101,6 +123,17 @@ export type APIHeroBanner = {
 };
 
 /* ==================================================
+   HERO BANNER (UI)
+================================================== */
+export type HeroBannerItem = {
+  id: number;
+  image_desktop: string;
+  image_tablet: string | null;
+  image_mobile: string | null;
+  ordering: number;
+};
+
+/* ==================================================
    LANDING MENU ITEM (RAW)
 ================================================== */
 export type APILandingMenuItem = {
@@ -108,6 +141,14 @@ export type APILandingMenuItem = {
   slug: string;
   seo_title?: string;
   seo_description?: string;
+};
+
+/* ==================================================
+   LANDING MENU ITEM (UI)
+================================================== */
+export type LandingMenuItem = {
+  name: string;
+  slug: string;
 };
 
 /* ==================================================
@@ -121,17 +162,29 @@ export type APIFeaturedCategory = {
 };
 
 /* ==================================================
-   HOT CATEGORY (RAW)
+   FEATURED CATEGORY (UI)
 ================================================== */
-export type APIHotCategory = {
-  id: number;
+export type FeaturedCategory = {
   name: string;
   slug: string;
   image: string | null;
 };
 
 /* ==================================================
-   🔥 COMFORT RAIL (RAW — SAFE)
+   HOT CATEGORY (RAW + UI)
+================================================== */
+export type APIHotCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  image: string | null;
+  hot_category_block_id?: number;
+};
+
+export type HotCategory = APIHotCategory;
+
+/* ==================================================
+   🔥 COMFORT RAIL (RAW)
 ================================================== */
 export type APIComfortRail = {
   id: number;
@@ -144,26 +197,19 @@ export type APIComfortRail = {
     id: number;
     name: string;
     slug: string;
-
     price: string;
     old_price: string | null;
-
     main_image: string | null;
   }[];
 };
 
 /* ==================================================
-   CMS LAYOUT BLOCK (RAW)
-   --------------------------------------------------
-   Discriminated union (STRICT)
+   CMS LAYOUT BLOCK (RAW — DISCRIMINATED UNION)
 ================================================== */
 export type LandingCMSBlock =
   | { type: "hero" }
   | { type: "menu" }
   | { type: "featured" }
-  | { type: "hot" }
+  | { type: "hot"; hot_category_block_id: number }
   | { type: "comfort_block" }
-  | {
-      type: "comfort_rail";
-      comfort_rail_id: number;
-    };
+  | { type: "comfort_rail"; comfort_rail_id: number };

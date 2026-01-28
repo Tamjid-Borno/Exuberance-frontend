@@ -1,6 +1,28 @@
+"use client";
+
 import styles from "./ProductInfo.module.css";
 import type { ProductDetail } from "@/types/product";
 
+/* ==================================================
+   HELPERS
+================================================== */
+
+/**
+ * Convert API price (string | number | null) → number | null
+ * This is REQUIRED for safe comparisons.
+ */
+function normalizePrice(
+  value: string | number | null | undefined
+): number | null {
+  if (value === null || value === undefined) return null;
+
+  const num =
+    typeof value === "number"
+      ? value
+      : Number.parseFloat(value);
+
+  return Number.isFinite(num) ? num : null;
+}
 
 /* ==================================================
    ProductInfo (MOBILE-FIRST)
@@ -11,23 +33,26 @@ import type { ProductDetail } from "@/types/product";
    ❌ NO short description
    ❌ NO full description
 ================================================== */
+
 export default function ProductInfo({
   product,
 }: {
   product: ProductDetail;
 }) {
+  const price = normalizePrice(product.price);
+  const oldPrice = normalizePrice(product.old_price);
+
   const hasDiscount =
-    typeof product.old_price === "number" &&
-    product.old_price > product.price;
+    price !== null &&
+    oldPrice !== null &&
+    oldPrice > price;
 
   return (
     <section className={styles.wrapper}>
       {/* =========================
          PRODUCT NAME
       ========================= */}
-      <h1 className={styles.name}>
-        {product.name}
-      </h1>
+      <h1 className={styles.name}>{product.name}</h1>
 
       {/* =========================
          PRICE
@@ -35,14 +60,16 @@ export default function ProductInfo({
       <div className={styles.priceRow}>
         {hasDiscount && (
           <span className={styles.oldPrice}>
-            ৳{product.old_price}
+            ৳{oldPrice}
           </span>
         )}
 
-        <span className={styles.price}>
-          <span className={styles.currency}>৳</span>
-          {product.price}
-        </span>
+        {price !== null && (
+          <span className={styles.price}>
+            <span className={styles.currency}>৳</span>
+            {price}
+          </span>
+        )}
       </div>
     </section>
   );

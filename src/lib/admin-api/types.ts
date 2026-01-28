@@ -3,6 +3,16 @@
 /* ==================================================
    ORDERS — ADMIN
 ================================================== */
+/* ==================================================
+   ORDER STATUS (SINGLE SOURCE OF TRUTH)
+================================================== */
+
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 export type AdminOrder = {
   id: number;
@@ -121,19 +131,21 @@ export type AdminCategoryTreeNode = {
   id: number;
   name: string;
   slug: string;
-
-  /** Parent category (null = root) */
   parent_id: number | null;
 
-  /** Soft visibility control */
+  // State
   is_active: boolean;
 
-  /** Campaign marker (for badges / filters) */
+  // 🔥 Campaign
   is_campaign: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  show_countdown: boolean;
 
-  /** Children (already hierarchical) */
+  // Tree
   children: AdminCategoryTreeNode[];
 };
+
 
 /* ==================================================
    PRODUCTS — ADMIN (LIST)
@@ -230,3 +242,4 @@ export type AdminProductDetail = {
    */
   categories: AdminCategory[];
 };
+

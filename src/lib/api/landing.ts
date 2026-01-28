@@ -1,46 +1,65 @@
+/* ==================================================
+   LANDING PUBLIC API (NORMALIZED — FINAL)
+   --------------------------------------------------
+   ✅ No raw API types leak to UI
+   ✅ No missing imports
+   ✅ No null/undefined mismatches
+================================================== */
+
 import { API_BASE } from "./config";
+
+/* ================= RAW API TYPES ================= */
+
 import type {
   ApiBlockResponse,
-  HeroBanner,
-  LandingMenuItem,
-  FeaturedCategory,
-  HotCategory,
-  ComfortRail,
+  APIHeroBanner,
+  APILandingMenuItem,
+  APIFeaturedCategory,
+  APIHotCategory,
+  APIComfortRail,
   LandingCMSBlock,
 } from "./types";
-import {
-  normalizeHeroBanner,
-  normalizeMediaUrl,
-} from "./normalizers";
+
+/* ================= UI TYPES ================= */
+
+import type { HeroBannerItem } from "@/types/hero-banner";
+import type { LandingMenuItem } from "@/types/landing-menu";
+import type { FeaturedCategory } from "@/types/featured-category";
+import type { HotCategory } from "@/types/hot-category";
+import type { ComfortRail } from "@/types/comfort-rail";
 
 /* ==================================================
-   INTERNAL SAFE FETCH (PUBLIC API)
+   INTERNAL SAFE FETCH
 ================================================== */
 
 async function safeFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    cache: "no-store",
-  });
+  const res = await fetch(url, { cache: "no-store" });
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch: ${url}`);
+    throw new Error(`[API] Failed to fetch: ${url}`);
   }
 
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 /* ==================================================
    HERO BANNERS
 ================================================== */
 
-export async function getHeroBanners(): Promise<HeroBanner[]> {
-  const data = await safeFetch<ApiBlockResponse<any>>(
+export async function getHeroBanners(): Promise<HeroBannerItem[]> {
+  const data = await safeFetch<ApiBlockResponse<APIHeroBanner>>(
     `${API_BASE}/api/landing/banners/`
   );
 
-  return Array.isArray(data.items)
-    ? data.items.map(normalizeHeroBanner)
-    : [];
+  if (!Array.isArray(data.items)) return [];
+
+  return data.items.map((b) => ({
+    id: b.id,
+    image_desktop: b.image_desktop,
+    image_tablet: b.image_tablet,
+    image_mobile: b.image_mobile,
+    ordering: b.ordering,
+  }));
 }
 
 /* ==================================================
@@ -48,11 +67,20 @@ export async function getHeroBanners(): Promise<HeroBanner[]> {
 ================================================== */
 
 export async function getLandingMenu(): Promise<LandingMenuItem[]> {
-  const data = await safeFetch<ApiBlockResponse<LandingMenuItem>>(
+  const data = await safeFetch<ApiBlockResponse<APILandingMenuItem>>(
     `${API_BASE}/api/landing/menu/`
   );
 
-  return Array.isArray(data.items) ? data.items : [];
+  if (!Array.isArray(data.items)) return [];
+
+  return data.items.map((item) => ({
+    name: item.name,
+    slug: item.slug,
+    ...(item.seo_title ? { seo_title: item.seo_title } : {}),
+    ...(item.seo_description
+      ? { seo_description: item.seo_description }
+      : {}),
+  }));
 }
 
 /* ==================================================
@@ -62,18 +90,18 @@ export async function getLandingMenu(): Promise<LandingMenuItem[]> {
 export async function getFeaturedCategories(): Promise<
   FeaturedCategory[]
 > {
-  const data = await safeFetch<ApiBlockResponse<any>>(
-    `${API_BASE}/api/landing/featured-categories/`
-  );
+  const data = await safeFetch<
+    ApiBlockResponse<APIFeaturedCategory>
+  >(`${API_BASE}/api/landing/featured-categories/`);
 
-  return Array.isArray(data.items)
-    ? data.items.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        slug: item.slug,
-        image: normalizeMediaUrl(item.image),
-      }))
-    : [];
+  if (!Array.isArray(data.items)) return [];
+
+  return data.items.map((item, index) => ({
+    id: item.id ?? index,
+    name: item.name,
+    slug: item.slug,
+    image: item.image,
+  }));
 }
 
 /* ==================================================
@@ -81,18 +109,18 @@ export async function getFeaturedCategories(): Promise<
 ================================================== */
 
 export async function getHotCategories(): Promise<HotCategory[]> {
-  const data = await safeFetch<ApiBlockResponse<any>>(
-    `${API_BASE}/api/landing/hot-categories/`
-  );
+  const data = await safeFetch<
+    ApiBlockResponse<APIHotCategory>
+  >(`${API_BASE}/api/landing/hot-categories/`);
 
   if (!Array.isArray(data.items)) return [];
 
-  return data.items.map((item: any) => ({
+  return data.items.map((item) => ({
     id: item.id,
     hot_category_block_id: item.hot_category_block_id,
     name: item.name,
     slug: item.slug,
-    image: normalizeMediaUrl(item.image),
+    image: item.image,
   }));
 }
 
@@ -101,44 +129,44 @@ export async function getHotCategories(): Promise<HotCategory[]> {
 ================================================== */
 
 export async function getComfortRails(): Promise<ComfortRail[]> {
-  const data = await safeFetch<ApiBlockResponse<any>>(
-    `${API_BASE}/api/landing/comfort/`
-  );
+  const data = await safeFetch<
+    ApiBlockResponse<APIComfortRail>
+  >(`${API_BASE}/api/landing/comfort/`);
 
   if (!Array.isArray(data.items)) return [];
 
-  return data.items.map((rail: any) => ({
+  return data.items.map((rail) => ({
     id: rail.id,
 
     category: {
       name: rail.category.name,
       slug: rail.category.slug,
-      image: normalizeMediaUrl(rail.category.image),
+      image: rail.category.image,
     },
 
     products: Array.isArray(rail.products)
-      ? rail.products.map((p: any) => ({
+      ? rail.products.map((p) => ({
           id: p.id,
           name: p.name,
           slug: p.slug,
           price: p.price,
           old_price: p.old_price ?? null,
-          main_image: normalizeMediaUrl(
-            p.main_image || p.image
-          ),
+          main_image: p.main_image ?? null,
         }))
       : [],
   }));
 }
 
 /* ==================================================
-   CMS — LANDING LAYOUT (PUBLIC)
+   CMS — LANDING LAYOUT (ORDER ONLY)
 ================================================== */
 
 export async function getLandingCMS(): Promise<
-  ApiBlockResponse<LandingCMSBlock>
+  LandingCMSBlock[]
 > {
-  return safeFetch<ApiBlockResponse<LandingCMSBlock>>(
-    `${API_BASE}/api/landing/cms/`
-  );
+  const data = await safeFetch<
+    ApiBlockResponse<LandingCMSBlock>
+  >(`${API_BASE}/api/landing/cms/`);
+
+  return Array.isArray(data.items) ? data.items : [];
 }

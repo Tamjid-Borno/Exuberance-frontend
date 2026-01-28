@@ -1,25 +1,26 @@
 // ==================================================
-// PUBLIC API ENTRY POINT
+// PUBLIC API ENTRY POINT (UI-SAFE)
+// ==================================================
+//
+// ❌ DO NOT EXPORT RAW API TYPES
+// ❌ DO NOT EXPORT ./types
+//
+// This file is the ONLY gateway the frontend should use
+//
+
+// ==================================================
+// DOMAIN APIS (UI SAFE)
 // ==================================================
 
-// ❌ DO NOT EXPORT RAW API TYPES
-// export * from "./types";  ← REMOVED
-
-// Only expose domain-safe APIs
 export * from "./categories";
 export * from "./products";
 
 // ==================================================
-// CMS APIs (FRONTEND SAFE)
+// CMS APIs (ALREADY NORMALIZED)
 // ==================================================
 
-import type {
-  ApiBlockResponse,
-  LandingCMSBlock,
-} from "./types"; // ✅ INTERNAL USE ONLY
-
 import {
-  getLandingCMS as fetchLandingCMS, // internal raw fetch
+  getLandingCMS as fetchLandingCMS, // ✅ already returns LandingCMSBlock[]
   getHeroBanners,
   getLandingMenu,
   getFeaturedCategories,
@@ -27,32 +28,37 @@ import {
   getComfortRails,
 } from "./landing";
 
+import type { LandingCMSBlock } from "./types"; // internal type only
+
 // ==================================================
-// CMS — NORMALIZED (SAFE FOR UI)
+// CMS — ORDER ONLY (FINAL)
 // ==================================================
+
+/**
+ * CMS controls ORDER only.
+ * Data is already normalized in landing.ts
+ */
 export async function getLandingCMS(): Promise<
   LandingCMSBlock[]
 > {
-  const response: ApiBlockResponse<LandingCMSBlock> =
-    await fetchLandingCMS();
+  const blocks = await fetchLandingCMS();
 
-  if (
-    !response ||
-    !Array.isArray(response.items)
-  ) {
+  if (!Array.isArray(blocks)) {
     console.warn(
-      "[API] Invalid CMS response:",
-      response
+      "[API] Invalid CMS blocks:",
+      blocks
     );
     return [];
   }
 
-  return response.items;
+  return blocks;
 }
 
 // ==================================================
 // ATOMIC LANDING EXPORTS
+// (already normalized & UI-safe)
 // ==================================================
+
 export {
   getHeroBanners,
   getLandingMenu,

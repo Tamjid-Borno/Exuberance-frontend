@@ -58,9 +58,9 @@ export default function CreateLandingBlockModal({
     useState<AdminComfortCategoryRail[]>([]);
 
   const [hotBlockId, setHotBlockId] =
-    useState<number | "">("");
+    useState<number | null>(null);
   const [comfortRailId, setComfortRailId] =
-    useState<number | "">("");
+    useState<number | null>(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +73,10 @@ export default function CreateLandingBlockModal({
       fetchAdminHotCategoryBlocks()
         .then(setHotBlocks)
         .catch(() =>
-          showToast("Failed to load hot category blocks", "error")
+          showToast(
+            "Failed to load hot category blocks",
+            "error"
+          )
         );
     }
 
@@ -81,24 +84,32 @@ export default function CreateLandingBlockModal({
       fetchAdminComfortRails()
         .then(setComfortRails)
         .catch(() =>
-          showToast("Failed to load comfort rails", "error")
+          showToast(
+            "Failed to load comfort rails",
+            "error"
+          )
         );
     }
   }, [open, blockType, showToast]);
 
   /* ================= VALIDATION ================= */
 
-  function canSubmit() {
+  function canSubmit(): boolean {
     if (!blockType) return false;
-    if (blockType === "hot") return typeof hotBlockId === "number";
+    if (blockType === "hot") return hotBlockId !== null;
     if (blockType === "comfort_rail")
-      return typeof comfortRailId === "number";
+      return comfortRailId !== null;
     return true;
   }
 
   /* ================= CREATE ================= */
 
   async function handleCreate() {
+    if (!blockType) {
+      showToast("Please select a block type", "error");
+      return;
+    }
+
     if (!canSubmit()) return;
 
     try {
@@ -109,7 +120,9 @@ export default function CreateLandingBlockModal({
         hot_category_block_id:
           blockType === "hot" ? hotBlockId : null,
         comfort_rail_id:
-          blockType === "comfort_rail" ? comfortRailId : null,
+          blockType === "comfort_rail"
+            ? comfortRailId
+            : null,
       });
 
       showToast("Landing block created", "success");
@@ -142,9 +155,18 @@ export default function CreateLandingBlockModal({
             <label>Block type</label>
             <select
               value={blockType}
-              onChange={(e) =>
-                setBlockType(e.target.value as LandingBlockType)
-              }
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "") {
+                  setBlockType("");
+                } else {
+                  setBlockType(value as LandingBlockType);
+                }
+
+                // reset dependent state
+                setHotBlockId(null);
+                setComfortRailId(null);
+              }}
             >
               <option value="">Select…</option>
               {BLOCK_TYPES.map((t) => (
@@ -160,9 +182,13 @@ export default function CreateLandingBlockModal({
             <div className="form-group">
               <label>Hot category block</label>
               <select
-                value={hotBlockId}
+                value={hotBlockId ?? ""}
                 onChange={(e) =>
-                  setHotBlockId(Number(e.target.value))
+                  setHotBlockId(
+                    e.target.value
+                      ? Number(e.target.value)
+                      : null
+                  )
                 }
               >
                 <option value="">Select…</option>
@@ -180,9 +206,13 @@ export default function CreateLandingBlockModal({
             <div className="form-group">
               <label>Comfort rail</label>
               <select
-                value={comfortRailId}
+                value={comfortRailId ?? ""}
                 onChange={(e) =>
-                  setComfortRailId(Number(e.target.value))
+                  setComfortRailId(
+                    e.target.value
+                      ? Number(e.target.value)
+                      : null
+                  )
                 }
               >
                 <option value="">Select…</option>

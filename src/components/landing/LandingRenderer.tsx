@@ -7,25 +7,43 @@ import HotCategories from "./HotCategories";
 import ComfortBlock from "./ComfortBlock";
 import ComfortRail from "./ComfortRail";
 
-import type {
-  LandingCMSBlock,
-  ComfortRail as ComfortRailType,
-  HotCategory,
-} from "@/lib/api/types";
+/**
+ * ==================================================
+ * LANDING CMS RENDERER — FINAL, LAYER-SAFE
+ * ==================================================
+ *
+ * RULES:
+ * - CMS controls ORDER only
+ * - API layer owns RAW contracts
+ * - UI consumes NORMALIZED TYPES ONLY
+ */
+
+import type { LandingCMSBlock } from "@/lib/api/types";
+
+// ✅ UI-safe domain types (NORMALIZED)
+import type { HeroBannerItem } from "@/types/hero-banner";
+import type { LandingMenuItem } from "@/types/landing-menu";
+import type { FeaturedCategory } from "@/types/featured-category";
+import type { HotCategory } from "@/types/hot-category";
+import type { ComfortRail as UIComfortRail } from "@/types/comfort-rail";
 
 /* ==================================================
-   LANDING CMS RENDERER (PRODUCTION–SAFE)
+   PROPS
 ================================================== */
 
 type Props = {
   blocks: LandingCMSBlock[];
 
-  heroBanners: any[];
-  landingMenuItems: any[];
-  featuredCategories: any[];
+  heroBanners: HeroBannerItem[];
+  landingMenuItems: LandingMenuItem[];
+  featuredCategories: FeaturedCategory[];
   hotCategories: HotCategory[];
-  comfortRails: ComfortRailType[];
+  comfortRails: UIComfortRail[];
 };
+
+/* ==================================================
+   COMPONENT
+================================================== */
 
 export default function LandingRenderer({
   blocks,
@@ -43,71 +61,43 @@ export default function LandingRenderer({
     <>
       {blocks.map((block, index) => {
         switch (block.type) {
-          /* =========================
-             HERO
-          ========================= */
+          /* ================= HERO ================= */
           case "hero":
-            return heroBanners.length > 0 ? (
+            return heroBanners.length ? (
               <HeroBanner
                 key={`hero-${index}`}
                 banners={heroBanners}
               />
             ) : null;
 
-          /* =========================
-             MENU
-          ========================= */
+          /* ================= MENU ================= */
           case "menu":
-            return landingMenuItems.length > 0 ? (
+            return landingMenuItems.length ? (
               <LandingMenu
                 key={`menu-${index}`}
                 items={landingMenuItems}
               />
             ) : null;
 
-          /* =========================
-             FEATURED
-          ========================= */
+          /* ============== FEATURED ============== */
           case "featured":
-            return featuredCategories.length > 0 ? (
+            return featuredCategories.length ? (
               <FeaturedCategories
                 key={`featured-${index}`}
                 items={featuredCategories}
               />
             ) : null;
 
-          /* =========================
-             HOT (🔥 COLLECTIVE, CMS-DRIVEN)
-          ========================= */
-          case "hot": {
-            if (!block.hot_category_block_id) return null;
-
-            const items = hotCategories.filter(
-              (c) =>
-                Number(c.hot_category_block_id) ===
-                Number(block.hot_category_block_id)
-            );
-
-            if (!items || items.length === 0) {
-              console.warn(
-                "⚠️ Hot category block empty or missing (ID:",
-                block.hot_category_block_id,
-                ")"
-              );
-              return null;
-            }
-
-            return (
+          /* ================= HOT ================= */
+          case "hot":
+            return hotCategories.length ? (
               <HotCategories
-                key={`hot-block-${block.hot_category_block_id}`}
-                items={items}
+                key={`hot-${index}`}
+                items={hotCategories}
               />
-            );
-          }
+            ) : null;
 
-          /* =========================
-             COMFORT EDITORIAL
-          ========================= */
+          /* ============ COMFORT BLOCK ============ */
           case "comfort_block":
             return (
               <ComfortBlock
@@ -115,14 +105,10 @@ export default function LandingRenderer({
               />
             );
 
-          /* =========================
-             COMFORT RAIL
-          ========================= */
+          /* ============ COMFORT RAIL ============ */
           case "comfort_rail": {
             const rail = comfortRails.find(
-              (r) =>
-                Number(r.id) ===
-                Number(block.comfort_rail_id)
+              (r) => r.id === block.comfort_rail_id
             );
 
             if (!rail) {
@@ -143,9 +129,7 @@ export default function LandingRenderer({
             );
           }
 
-          /* =========================
-             UNKNOWN (SAFE FAIL)
-          ========================= */
+          /* ============== SAFE FALLBACK ============== */
           default:
             return null;
         }

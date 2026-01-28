@@ -9,15 +9,26 @@ import AdminTable from "../components/AdminTable";
 import AdminStatusBadge from "../components/AdminStatusBadge";
 import AdminRowActions from "../components/AdminRowActions";
 
-/**
- * ✅ CORRECT MODULE IMPORT
- */
 import {
   fetchAdminOrders,
   type AdminOrder,
-  type OrderStatus,
   type PaginatedResponse,
 } from "@/lib/admin-api";
+
+/* ==================================================
+   TYPES — LOCAL, STRICT, BACKEND-ALIGNED
+================================================== */
+
+/**
+ * Backend order status state machine.
+ * MUST stay in sync with Django OrderStatus choices.
+ */
+type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 /* ==================================================
    CONSTANTS
@@ -104,12 +115,11 @@ export default function AdminOrdersPage() {
       setOrders(response.items);
       setMeta(response.meta);
     } catch (err) {
-      const message =
+      setError(
         err instanceof Error
           ? err.message
-          : "Failed to load orders";
-
-      setError(message);
+          : "Failed to load orders"
+      );
     } finally {
       setLoading(false);
     }
@@ -145,13 +155,11 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="admin-page">
-      {/* ================= PAGE HEADER ================= */}
       <AdminPageHeader
         title="Orders"
         description="Manage and track customer orders"
       />
 
-      {/* ================= TOOLBAR ================= */}
       <AdminToolbar
         searchValue={search}
         onSearchChange={handleSearchChange}
@@ -161,7 +169,6 @@ export default function AdminOrdersPage() {
         disabled={loading}
       />
 
-      {/* ================= TABLE ================= */}
       <AdminTable>
         <thead>
           <tr>
@@ -175,7 +182,6 @@ export default function AdminOrdersPage() {
         </thead>
 
         <tbody>
-          {/* ---------- LOADING ---------- */}
           {loading && (
             <tr>
               <td colSpan={6} className="admin-table-state">
@@ -184,19 +190,14 @@ export default function AdminOrdersPage() {
             </tr>
           )}
 
-          {/* ---------- ERROR ---------- */}
           {!loading && error && (
             <tr>
-              <td
-                colSpan={6}
-                className="admin-table-state admin-table-error"
-              >
+              <td colSpan={6} className="admin-table-state admin-table-error">
                 {error}
               </td>
             </tr>
           )}
 
-          {/* ---------- EMPTY ---------- */}
           {isEmpty && (
             <tr>
               <td colSpan={6} className="admin-table-state">
@@ -205,11 +206,10 @@ export default function AdminOrdersPage() {
             </tr>
           )}
 
-          {/* ---------- ROWS ---------- */}
           {!loading &&
             !error &&
             orders.map((order) => (
-              <tr key={order.id} className="admin-table-row">
+              <tr key={order.id}>
                 <td className="mono">{order.reference}</td>
 
                 <td>
@@ -230,9 +230,7 @@ export default function AdminOrdersPage() {
                 </td>
 
                 <td className="cell-muted">
-                  {new Date(
-                    order.created_at
-                  ).toLocaleDateString()}
+                  {new Date(order.created_at).toLocaleDateString()}
                 </td>
 
                 <td className="align-right">
@@ -253,7 +251,6 @@ export default function AdminOrdersPage() {
         </tbody>
       </AdminTable>
 
-      {/* ================= PAGINATION ================= */}
       {meta && !loading && showingRange && (
         <div className="admin-pagination">
           <div>
@@ -264,9 +261,7 @@ export default function AdminOrdersPage() {
           <div className="admin-pagination-actions">
             <button
               disabled={!meta.has_prev}
-              onClick={() =>
-                setPage((p) => Math.max(1, p - 1))
-              }
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
               Prev
             </button>
