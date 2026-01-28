@@ -11,11 +11,11 @@
 
 const API_BASE: string =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://127.0.0.1:8000";
+  "https://photo-village-scholarship-sizes.trycloudflare.com";
 
 const MEDIA_BASE: string =
   process.env.NEXT_PUBLIC_MEDIA_BASE_URL ??
-  "http://127.0.0.1:8000";
+  "https://photo-village-scholarship-sizes.trycloudflare.com";
 
 /* ==================================================
    TYPES — STRICT & SAFE
