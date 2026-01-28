@@ -27,7 +27,7 @@
 export const API_BASE: string = (
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.API_BASE_URL ||
-  "https://wheat-polyester-inter-chat.trycloudflare.com"
+  "https://arbor-gardening-alfred-nations.trycloudflare.com"
 ).replace(/\/$/, "");
 
 /**
