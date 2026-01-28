@@ -14,7 +14,7 @@
 
 const RAW_API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://localhost:8000";
+  "https://photo-village-scholarship-sizes.trycloudflare.com";
 
 /**
  * API base (no trailing slash)
